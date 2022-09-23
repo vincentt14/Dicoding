@@ -1,1 +1,82 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title></title><script defer="defer" src="bundle.js"></script></head><body><h1>dsadsad</h1><h2>dsadsadsadsa2321ddddddds</h2><header><app-bar></app-bar></header><main><search-bar></search-bar><club-list></club-list></main></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Food Pedia</title><script defer="defer" src="bundle.js"></script></head><body onload="renderHomeFood()"><header><app-bar></app-bar><nav class="navbar background pb-3 border-bottom"><div class="container-fluid"><form class="d-flex mx-auto" role="search"><input class="form-control me-2" id="inputSearchMeal" type="search" placeholder="Search Food Name" aria-label="Search"> <button class="btn btn-outline-success" onclick="renderFoodListByName()" type="button" id="buttonSearchMeal">Search</button></form></div></nav><div class="container card my-3 background" id="category"><p class="text-center mt-1">Categories</p><ul class="nav pb-1 mx-auto"><li class="p-2"></li></ul></div></header><main><div class="container"><div class="row mx-auto" id="foodList"></div></div></main><script>const category = document.getElementById('category');
+  const categoryUL = category.querySelector('ul');
+  const foodList = document.getElementById('foodList');
+  const inputSearchMeal = document.getElementById('inputSearchMeal');
+  const buttonSearchMeal = document.getElementById('buttonSearchMeal');
+
+  const renderHomeFood = () => {
+    fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=A`)
+      .then(res => res.json())
+      .then(data => {renderFoodItem(data.meals)
+        console.log(data);
+      })
+      .catch(e => {
+        console.log(e)
+      })
+  }
+
+  const renderCategory = (categories) => {
+    categoryUL.innerHTML = '';
+    categories.forEach(category => {
+      categoryUL.innerHTML += `
+      <li class="px-2">
+        <button type="button" onclick="renderFoodListByCategory('${category.strCategory}')" class="btn btn-outline-secondary">${category.strCategory}</button>
+      </li>
+    `;
+    });
+  }
+
+  const renderFoodListByCategory = (category) => {
+    console.log(category);
+    fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${category}`)
+      .then(res => res.json())
+      .then(data => renderFoodItem(data.meals));
+  }
+
+  const renderFoodListByName = () => {
+    const name = inputSearchMeal.value;
+    console.log(name);
+    fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${name}`)
+      .then(res => res.json())
+      .then(data => renderFoodItem(data.meals));
+  }
+
+  const renderFoodItem = (meals) => {
+    foodList.innerHTML = '';
+
+    meals.forEach(meal => {
+      foodList.innerHTML += `
+        <div class="col-md-3 mb-3">
+          <div class="card">
+            <img src="${meal.strMealThumb}" class="card-img-top" alt="perahu">
+            <div class="card-body">
+              <h5 class="card-title mb-3">${meal.strMeal}</h5>
+              ${(meal.strInstructions === undefined) ? '' : `<button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#exampleModal${meal.idMeal}"}>See Instructions</button>`}
+            </div>
+          </div>
+        </div>
+
+        <!-- modal -->
+        <div class="modal fade" id="exampleModal${meal.idMeal}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">${meal.strMeal}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+              ${meal.strInstructions}
+              </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    });
+  }
+
+  fetch('https://www.themealdb.com/api/json/v1/1/categories.php')
+    .then(res => res.json())
+    .then(data => renderCategory(data.categories));</script></body></html>
